@@ -32,7 +32,6 @@ module top (
 );
 
 
-
 //=======================================================
 //  REG/WIRE declarations
 //=======================================================
@@ -63,6 +62,17 @@ module top (
 		/* start out going to the left */
 		ledstate = 1'b0;
 	end
+
+	// .val connect the input, .HEX connects the output
+	hexdriver h0 (.val(SW[3:0]), 		   .HEX(HEX0));
+	hexdriver h1 (.val(SW[7:4]), 		   .HEX(HEX1));
+	hexdriver h2 (.val(SW[11:8]), 		   .HEX(HEX2));
+	hexdriver h3 (.val(SW[15:12]),         .HEX(HEX3));
+	hexdriver h4 (.val({2'b0, SW[17:16]}), .HEX(HEX4));  // hardwire top two bits
+
+	hexdriver h5 (.val(4'b0), 			   .HEX(HEX5));
+	hexdriver h6 (.val(4'b0), 			   .HEX(HEX6));
+	hexdriver h7 (.val(4'b0), 			   .HEX(HEX7));	
 
 	always @(posedge CLOCK_50) begin
 		/* drive the clock divider, every 2^26 cycles of CLOCK_50, the

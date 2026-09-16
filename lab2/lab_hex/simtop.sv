@@ -38,9 +38,10 @@ module simtop;
 
 	// simple task to check one HEX output against an expected pattern
 	task check(input [6:0] actual, input[6:0] expected, input string label);
-		actual !== expected 
-		? $display("FAIL: %s expected %b got %b, label, expected, actual") 
-		: $display("PASS: %s", label);
+		if (actual != expected) 
+			$display("FAIL: %s expected %b got %b, label, expected, actual"); 
+		else
+			$display("PASS: %s", label);
 	endtask
 
 	initial begin

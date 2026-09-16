@@ -6,6 +6,7 @@
 module simtop;
 
 	logic clk;
+	logic [17:0] SW;
 	logic [6:0] HEX0,HEX1,HEX2,HEX3,HEX4,HEX5,HEX6,HEX7;
 
 	top dut
@@ -39,7 +40,7 @@ module simtop;
 	// simple task to check one HEX output against an expected pattern
 	task check(input [6:0] actual, input[6:0] expected, input string label);
 		if (actual != expected) 
-			$display("FAIL: %s expected %b got %b, label, expected, actual"); 
+			$display("FAIL: %s expected %b got %b", label, expected, actual); 
 		else
 			$display("PASS: %s", label);
 	endtask
@@ -72,8 +73,9 @@ module simtop;
 		#10; 
 		check(HEX3, 7'b000_1110, "HEX3 = F");
 		#10; 
-		check(HEX4, 7'b000_1110, "HEX4 = F");
+		check(HEX4, 7'b011_0000, "HEX4 = 3");
 
+	$finish;
 
 	end
 

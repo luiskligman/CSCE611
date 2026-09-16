@@ -49,31 +49,41 @@ module simtop;
 
 		SW = 18'b0;
 
-		// Check all HEX for 0
-		SW[17:0] = 18'd0;
+		SW[3:0] = 4'h0;
 		#10; 
 		check(HEX0, 7'b100_0000, "HEX0 = 0");
+		SW[3:0] = 4'hB;
 		#10; 
-		check(HEX1, 7'b100_0000, "HEX1 = 0");
-		#10; 
-		check(HEX2, 7'b100_0000, "HEX2 = 0");
-		#10; 
-		check(HEX3, 7'b100_0000, "HEX3 = 0");
-		#10; 
-		check(HEX4, 7'b100_0000, "HEX4 = 0");
+		check(HEX0, 7'b000_0011, "HEX0 = B");
 
-		// Check all HEX for F
-		SW[17:0] = {18{1'b1}};
+		SW[7:4] = 4'h1;
 		#10; 
-		check(HEX0, 7'b000_1110, "HEX0 = F");
+		check(HEX1, 7'b111_1001, "HEX1 = 1");
+		SW[7:4] = 4'hC;
 		#10; 
-		check(HEX1, 7'b000_1110, "HEX1 = F");
+		check(HEX1, 7'b100_0110, "HEX1 = C");
+
+		SW[11:8] = 4'h2;
 		#10; 
-		check(HEX2, 7'b000_1110, "HEX2 = F");
+		check(HEX2, 7'b010_0100, "HEX2 = 2");
+		SW[11:8] = 4'hA;
+		#10; 
+		check(HEX2, 7'b000_1000, "HEX2 = A");
+
+		SW[15:12] = 4'hF;
 		#10; 
 		check(HEX3, 7'b000_1110, "HEX3 = F");
+		SW[15:12] = 4'h9;
+		#10; 
+		check(HEX3, 7'b001_0000, "HEX3 = 9");
+
+		SW[17:16] = 2'h3;
 		#10; 
 		check(HEX4, 7'b011_0000, "HEX4 = 3");
+		SW[17:16] = 2'h1;
+		#10; 
+		check(HEX4, 7'b111_1001, "HEX4 = 1");
+
 
 	$finish;
 

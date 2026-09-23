@@ -1,0 +1,19 @@
+#!/bin/sh
+
+if [ $# -ge 1 ] ; then
+	if [ "$1" = "help" ] ; then
+		echo "Pack up file for submission" 1>&2
+		exit 0
+	fi
+fi
+
+if ! prompt "this will clean your project's build files, are you sure you want to proceed?"; then
+	echo "user did not wish to proceed" 1>&2
+	exit 0
+fi
+set -e
+output_file="$(select_7z_file)"
+set +e   # clean can fail if there are .nfs files floating around
+$0 clean
+set -e
+7z a "$output_file" "$(pwd)"

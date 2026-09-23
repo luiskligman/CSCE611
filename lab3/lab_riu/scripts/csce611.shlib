@@ -1,0 +1,233 @@
+# Copyright 2019,2021 Charles A. Daniels
+# With thanks to Joshua Nelson for the improved version of prompt().
+#
+# This file contains common logic used for all variants of csce611.sh
+#
+# It needs to be sourced
+#
+# It should not be executed directly
+#
+# The following variables have an affect:
+#
+# LAB . . . lab name
+
+if [ -z "$LAB" ] ; then
+	echo "sourced csce611.shlib without defining LAB" 1>&2
+	exit 1
+fi
+
+PACK_REGEX='CSCE611_Fall2023_'"$LAB"'_[a-zA-Z0-9]+[.]7z$'
+DEFAULT_PACK_NAME="CSCE611_Fall2021_""$LAB""_$(whoami).7z"
+
+
+# LD_LIBRARY_PATH needs to be defined for later
+if [ -z "$LD_LIBRARY_PATH" ] ; then
+	export LD_LIBRARY_PATH=""
+fi
+
+if [ -z "$DISPLAY" ] ; then
+	export HAS_DISPLAY=n
+else
+	export HAS_DISPLAY=y
+fi
+
+set -e
+set -u
+
+# prompt the user with a yes/no question
+prompt () {
+	if [ "$HAS_DISPLAY" = y ]; then
+		zenity --question --text "$1"
+	else
+		read -p "$1 y/[n] "
+		[ "$REPLY" = y ]
+	fi
+}
+
+# fail because we cannot find Quartus
+fail_quartus () {
+	echo "Cannot find a Quartus installation. Did you forget to source the correct setup file?" 1>&2
+	exit 1
+}
+
+# fail because we cannot find modelsim
+fail_modelsim() {
+	echo "Cannot find a Modelsim installation. Did you forget to source the correct setup file?" 1>&2
+	exit 1
+}
+
+# run a command with Quartus's LD_LIBRARY_PATH settings
+with_quartus_ld() {
+	LD_LIBRARY_PATH="$QUARTUS_ROOTDIR/linux64:$LD_LIBRARY_PATH" $@
+}
+
+# select a 7z output file for packing an assignment
+select_7z_file() {
+	OLDDIR="$(pwd)"
+	USERDIR="$(xdg-user-dir DESKTOP)"
+	cd "$USERDIR"
+	if [ "$HAS_DISPLAY" = y ] ; then
+		selected_file="$(zenity --file-selection --save --filename "$DEFAULT_PACK_NAME")"
+	else
+		echo "Suggested (default) filename is: $USERDIR/$DEFAULT_PACK_NAME" 1>&2
+		read -ep "Please enter a filename or 'd' to use the default or 'e' to edit default: " selected_file
+
+		# expand ~ (thanks Josh)
+		selected_file="${selected_file/#\~/$HOME}"
+
+		if [ "$selected_file" = 'd' ] ; then
+			echo "using default filename... " 1>&2
+			selected_file="$DEFAULT_PACK_NAME"
+		fi
+
+		if [ "$selected_file" = 'e' ] ; then
+			editor="nano"
+			if [ ! -z "$VISUAL" ] ; then
+				editor="$VISUAL"
+			elif [ ! -z "$EDITOR" ] ; then
+				editor="$EDITOR"
+			fi
+			edtmp="$(mktemp)"
+			echo "$USERDIR/$DEFAULT_PACK_NAME" > "$edtmp"
+			echo "When you exit your editor, the first line of this file will be used as the file name" >> "$edtmp"
+			echo "If you do not wish to proceed, enter 'a' to abort" >> "$edtmp"
+			if ! $editor "$edtmp" 1>&2 ; then
+				echo "Editor exited with an error, aborting" 1>&2
+				echo "ERROR"
+				exit 1
+			fi
+			selected_file="$(head -n 1 "$edtmp")"
+			rm -f "$edtmp"
+			if [ "$selected_file" = 'a' ] ; then
+				echo "Aborting selection by user request" 1>&2
+				exit 1
+			fi
+		fi
+
+	fi
+	cd "$OLDDIR"
+	if [ "$(echo "$selected_file" | awk '/'"$PACK_REGEX"'/' | wc -l)" -ne 1 ] ; then
+		if [ -d "$selected_file" ] ; then
+			if ! prompt "$selected_file is a directory, use $selected_file/$DEFAULT_PACK_NAME instead?" ; then
+				exit 1
+			else
+				selected_file="$selected_file/$DEFAULT_PACK_NAME"
+			fi
+		elif ! prompt "Filename $selected_file is not valid, it must match the regular expression $PACK_REGEX. Would you like to try again?" ; then
+			exit 1
+		else
+			selected_file="$(select_7z_file)"
+		fi
+	fi
+	echo "$selected_file"
+}
+
+# main body of any csce611.sh script
+#
+# Makes commands available based on executable in the scripts/commands/
+# directory. Such scripts must define a "help" message with $1 is help.
+csce611main() {
+
+	# make sure we have access to Quartus
+	set +u
+	if [ -z "$QUARTUS_ROOTDIR" ] ; then
+		echo "QUARTUS_ROOTDIR is not defined!" 1>&2
+		fail_quartus
+	fi
+
+	if [ ! -e "$QUARTUS_ROOTDIR" ] ; then
+		echo "QUARTUS_ROOTDIR '$QUARTUS_ROOTDIR' does not exist!" 1>&2
+		fail_quartus
+	fi
+
+	if [ ! -x "$(which vsim)" ] ; then
+		echo "vsim not in PATH" 1>&2
+		fail_modelsim
+	fi
+
+	if [ ! -x "$(which quartus_sh)" ] ; then
+		if [ "$(whoami)" = "csce611" ] ; then
+			# This is generally not desired, but we want
+			# ./csce611.sh testbench to still work within the VM.
+			echo "quartus_sh not in PATH, ignoring this error because you seem to be running in the CSCE611 VM" 1>&2
+			echo "NOTE: ./csce611.sh compile, program, and other Quartus-related commands will not work!" 1>&2
+		else
+			echo "quartus_sh not in PATH" 1>&2
+			fail_quartus
+		fi
+	fi
+
+	set -u
+
+	# make sure there is only one QPF
+	NUM_QPF="$(find . -iname "*.qpf" 2>/dev/null | wc -l)"
+	if [ "$NUM_QPF" -lt 1 ] ; then
+		echo "oops, no qpf file found in $(pwd), did you use the project skeleton?" 1>&2
+		exit 1
+
+	elif [ "$NUM_QPF" -gt 1 ] ; then
+		echo "oops, multiple qpf files found in $(pwd), you should only have !" 1>&2
+		exit 1
+
+	else
+		QPF="$(find . -iname "*.qpf")"
+	fi
+
+	if [ ! -f "$QPF" ] ; then
+		echo "something is wrong... '$QPF' exists but is not a regular file" 1>&2
+		exit 1
+	fi
+
+	set +u
+	if [ -z "$command" ] ; then
+		echo "script soiurced csce611.shlib without specifying a command" 1>&2
+		exit 1
+	fi
+	set -u
+
+	case $command in
+
+		help)
+			set +u
+			if [ -z "$parameters" ] ; then
+				echo "usage: $0 [command] ..." 1>&2
+				echo "" 1>&2
+				echo "available commands... " 1>&2
+				echo "" 1>&2
+				for f in ./scripts/commands/* ; do
+					echo "$(basename "$f")" | sed -e 's/\.[^.]*$//' 1>&2
+				done
+				echo "" 1>&2
+				echo "use '$0 help [command]' to view help for a specific command" 1>&2
+			else
+				if [ -e "./scripts/commands/$parameters.src" ] ; then
+					sh "./scripts/commands/$parameters.src" help
+					exit $?
+				elif [ -x "./scripts/commands/$parameters" ] ; then
+					"./scripts/commands/$parameters" help
+					exit $?
+				fi
+				echo "No such command $2" 1>&2
+				exit 1
+			fi
+			set -u
+
+			;;
+
+		*)
+
+			if [ -e "./scripts/commands/$command.src" ] ; then
+				. "./scripts/commands/$command.src"
+				exit $?
+			elif [ -x "./scripts/commands/$command" ] ; then
+				./scripts/commands/$command $parameters
+				exit $?
+			else
+				echo "unrecognized command $command, try 'help'" 1>&2
+				exit 1
+			fi
+			;;
+
+		esac
+
+}

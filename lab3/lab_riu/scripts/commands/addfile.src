@@ -1,0 +1,38 @@
+#!/bin/sh
+
+if [ $# -ge 1 ] ; then
+	if [ "$1" = "help" ] ; then
+		echo "Add a file (specified as an argument) to the Quartus project." 1>&2
+		exit 0
+	fi
+fi
+
+set +u
+if [ -z "$parameters" ] ; then
+	echo "no file specified" 1>&2
+	echo "usage: addfile [file]" 1>&2
+	exit 1
+fi
+set -u
+
+case $parameters in
+
+	*sv)
+		with_quartus_ld quartus_sh --tcl_eval project_open "$QPF" \; set_global_assignment -name SYSTEMVERILOG_FILE "$parameters"
+		;;
+
+	*v)
+		with_quartus_ld quartus_sh --tcl_eval project_open "$QPF" \; set_global_assignment -name VERILOG_FILE "$parameters"
+		;;
+	*sdc)
+		with_quartus_ld quartus_sh --tcl_eval project_open "$QPF" \; set_global_assignment -name SDC_FILE "$parameters"
+		;;
+	*)
+		echo "file $1 is neither an SDC or a Verilog file" 1>&2
+		exit 1
+		;;
+esac
+
+echo "Added file $parameters to project $QPF."
+
+shift

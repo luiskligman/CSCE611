@@ -1,0 +1,10 @@
+#!/bin/sh
+
+if [ $# -ge 1 ] ; then
+	if [ "$1" = "help" ] ; then
+		echo "Compile the design for programming the hardware" 1>&2
+		exit 0
+	fi
+fi
+
+with_quartus_ld quartus_sh --flow compile "$QPF"

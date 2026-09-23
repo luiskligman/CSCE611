@@ -1,0 +1,25 @@
+#!/bin/sh
+
+if [ $# -ge 1 ] ; then
+	if [ "$1" = "help" ] ; then
+		echo "Program the board with the design. Does NOT imply compile." 1>&2
+		exit 0
+	fi
+fi
+
+if ! with_quartus_ld sh scripts/jtag.sh 5 ; then
+	echo "JTAG issue, cannot program board"
+	exit 1
+fi
+
+NUM_SOF="$(find . -iname "*.sof" 2>/dev/null | wc -l)"
+if [ "$NUM_SOF" -gt 1 ] ; then
+	echo "multiple .sof files found, should only have one" 1>&2
+	exit 1
+elif [ "$NUM_SOF" -lt 1 ] ; then
+	echo "no .sof files found, did you forget to compile?" 1>&2
+	exit 1
+fi
+SOF="$(find . -iname "*.sof" 2>/dev/null)"
+echo "programming board with $SOF"
+with_quartus_ld quartus_pgm -m jtag -o "p;./$SOF"

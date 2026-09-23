@@ -1,0 +1,11 @@
+#!/bin/sh
+
+if [ $# -ge 1 ] ; then
+	if [ "$1" = "help" ] ; then
+		echo "Clean all build files (implies clean_hw and clean_sim)" 1>&2
+		exit 0
+	fi
+fi
+
+./csce611.sh clean_sim
+./csce611.sh clean_hw

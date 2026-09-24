@@ -73,11 +73,3 @@ cd lab2/lab_hex            # or lab3/lab_riu
 ```
 
 > If you see `QUARTUS_ROOTDIR: unbound variable`, source the Quartus environment first. On the course machines that is `source /usr/local/3rdparty/cad_setup_files/altera.bash`.
-
----
-
-## Acknowledgments
-
-The lab handouts, project skeletons, build scripts, and `alu.sv` are © Jason Bakos, Charles Daniels, and Philip Conrad (University of South Carolina). Everything else is my own coursework.
-
-**Author:** Luis Kligman · [GitHub](https://github.com/luiskligman) · [LinkedIn](https://www.linkedin.com/in/luiskligman)

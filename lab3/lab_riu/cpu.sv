@@ -33,5 +33,21 @@ module cpu(input logic clk, input logic rst_n);
         .funct3 (funct3),
         .immi (immi),
         .immu (immu)
-    )
+    );
+
+    controlunit control (
+        .opcode (opcode),
+        .funct7 (funct7),
+        .rd (rd),
+        .rs1 (rs1),
+        .rs2 (rs2),
+        .funct3 (funct3),
+        .immi (immi),
+        .immu (immu),
+        .alusrc_EX (),
+        .GPIO_we (),
+        .regwrite_EX (),
+        .regsel_EX (),
+        .aluop_EX ()
+    );
 endmodule

@@ -9,6 +9,25 @@ module controlunit (
     output logic regwrite_EX,
     output logic [1:0] regsel_EX,
     output logic [3:0] aluop_EX
+
+    always_comb 
+        begin
+            if (opcode == 7b'0010011) // R-Type
+            begin
+
+            end
+
+            if (opcode == 7b'0010011) // I-Type
+            begin
+
+            end
+            
+            if (opcode == 7b'0110111) // U-Type
+            begin
+
+            end
+
+        end
 );
 
 endmodule

@@ -27,7 +27,7 @@ module instruction_decoder (
         rd_EX     = instruction_EX[11:7];
 
         // R-Type
-        funct3_EX = insturction_EX[14:12];
+        funct3_EX = instruction_EX[14:12];
         rs1_EX    = instruction_EX[19:15];
         rs2_EX    = instruction_EX[24:20];
         funct7_EX = instruction_EX[31:25];

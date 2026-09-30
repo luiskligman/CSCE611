@@ -4,14 +4,15 @@ module instruction_decoder (
     // R-Type
     output logic [6:0] funct7,
     output logic [4:0] rs2,
+    output logic [4:0] rs1,
     output logic [2:0] funct3,
     output logic [4:0] rd,
     output logic [6:0] opcode,
     
     // I-Type
     output logic [11:0] immi,
-    output logic [4:0] rs1,
-    output logic [2:0] funct3,
+    // output logic [4:0] rs1,
+    // output logic [2:0] funct3,
     // output logic [4:0] rd,
     // output logic [6:0] opcode,
 
@@ -21,14 +22,22 @@ module instruction_decoder (
     // output logic [6:0] opcode,
     );
 
-    always_comb begin
-        
+    always_comb begin 
         opcode = instruction_EX[6:0];
         rd     = instruction_EX[11:7];
 
+        // R-Type
+        funct3 = insturction_EX[14:12];
+        rs1    = instruction_EX[19:15];
+        rs2    = instruction_EX[24:20];
+        funct7 = instruction_EX[31:25];
 
+        // I-Type
+        immi   = instruction_EX[31:20];
+
+        // U-Type
+        immu   = instruction_EX[31:12];
 
     end
-
 
 endmodule

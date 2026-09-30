@@ -63,7 +63,13 @@ module top (
 		/* start out going to the left */
 		ledstate = 1'b0;
 	end
+	
+	cpu cpu (
+		.clk (CLOCK_50),
+		.rst_n (KEY[0])
 
+	);
+	
 	always @(posedge CLOCK_50) begin
 		/* drive the clock divider, every 2^26 cycles of CLOCK_50, the
 		* top bit will roll over and give us a clock edge for clkdiv

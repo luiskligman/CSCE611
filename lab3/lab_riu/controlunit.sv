@@ -146,14 +146,14 @@ module controlunit (
                     aluop_EX = 4'b0010;
                 end
                 if (funct3_EX == 3'b101) begin
-                    if (funct7_EX == 3'b0000000) begin // srli
+                    if (funct7_EX == 7'b0000000) begin // srli
                         alusrc_EX = 1'b1;
                         GPIO_we_EX = 1'b0;
                         regwrite_EX = 1'b1;
                         regsel_EX = 2'b10;
                         aluop_EX = 4'b1001;
                     end
-                    if (funct3_EX == 3'b001) begin // srai
+                    if (funct7_EX == 7'b0100000) begin // srai
                         alusrc_EX = 1'b1;
                         GPIO_we_EX = 1'b0;
                         regwrite_EX = 1'b1;

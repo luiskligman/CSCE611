@@ -8,13 +8,12 @@ module controlunit (
     output logic [1:0] regsel_EX,
     output logic [3:0] aluop_EX );
 
-    always_comb 
+    always_comb begin
         alusrc_EX = 1'b0;
         GPIO_we_EX = 1'b0;
         regwrite_EX = 1'b0;
         regsel_EX = 2'b00;
          aluop_EX = 4'b0000;
-        begin
             if (opcode_EX == 7'b0110011) begin // R-Type
                 if (funct3_EX == 3'b000) begin
                     if (funct7_EX == 7'b0000000) begin // add 

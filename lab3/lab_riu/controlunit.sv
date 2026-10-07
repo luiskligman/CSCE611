@@ -186,7 +186,7 @@ module controlunit (
             if (opcode_EX == 7'b1110011) begin // csrrw
                 if (funct3_EX == 3'b001) begin
                     regwrite_EX = 1'b1;
-                    regsel_EX = 2'b110;
+                    regsel_EX = 2'b11;
                     if (csr == 12'hf00) // SW
                         regsel_EX = 2'b00;
                     if (csr == 12'hf02) // Hex

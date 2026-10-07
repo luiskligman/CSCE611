@@ -15,7 +15,7 @@ addi  x10, x15, 0         # value = quotient
 mul   x14, x10, x12       # low half: fractional part of value / 10
 mulhu x15, x10, x12       # high half: quotient = value / 10
 mulhu x16, x14, x13       # high half: digit = value % 10
-slli  x11, x11, 4         # make room for one BCD digit
+slli  x16, x16, 4         # make room for one BCD digit
 or    x11, x11, x16       # append that digit
 addi  x10, x15, 0         # value = quotient
 
@@ -23,7 +23,7 @@ addi  x10, x15, 0         # value = quotient
 mul   x14, x10, x12       # low half: fractional part of value / 10
 mulhu x15, x10, x12       # high half: quotient = value / 10
 mulhu x16, x14, x13       # high half: digit = value % 10
-slli  x11, x11, 8         # make room for one BCD digit
+slli  x16, x16, 8         # make room for one BCD digit
 or    x11, x11, x16       # append that digit
 addi  x10, x15, 0         # value = quotient
 
@@ -31,7 +31,7 @@ addi  x10, x15, 0         # value = quotient
 mul   x14, x10, x12       # low half: fractional part of value / 10
 mulhu x15, x10, x12       # high half: quotient = value / 10
 mulhu x16, x14, x13       # high half: digit = value % 10
-slli  x11, x11, 12         # make room for one BCD digit
+slli  x16, x16, 12         # make room for one BCD digit
 or    x11, x11, x16       # append that digit
 addi  x10, x15, 0         # value = quotient
 
@@ -39,7 +39,7 @@ addi  x10, x15, 0         # value = quotient
 mul   x14, x10, x12       # low half: fractional part of value / 10
 mulhu x15, x10, x12       # high half: quotient = value / 10
 mulhu x16, x14, x13       # high half: digit = value % 10
-slli  x11, x11, 16        # make room for one BCD digit
+slli  x16, x16, 16        # make room for one BCD digit
 or    x11, x11, x16       # append that digit
 addi  x10, x15, 0         # value = quotient
 
@@ -47,7 +47,7 @@ addi  x10, x15, 0         # value = quotient
 mul   x14, x10, x12       # low half: fractional part of value / 10
 mulhu x15, x10, x12       # high half: quotient = value / 10
 mulhu x16, x14, x13       # high half: digit = value % 10
-slli  x11, x11, 20         # make room for one BCD digit
+slli  x16, x16, 20         # make room for one BCD digit
 or    x11, x11, x16       # append that digit
 addi  x10, x15, 0         # value = quotient
 
@@ -55,7 +55,7 @@ addi  x10, x15, 0         # value = quotient
 mul   x14, x10, x12       # low half: fractional part of value / 10
 mulhu x15, x10, x12       # high half: quotient = value / 10
 mulhu x16, x14, x13       # high half: digit = value % 10
-slli  x11, x11, 24         # make room for one BCD digit
+slli  x16, x16, 24         # make room for one BCD digit
 or    x11, x11, x16       # append that digit
 addi  x10, x15, 0         # value = quotient
 
@@ -63,7 +63,7 @@ addi  x10, x15, 0         # value = quotient
 mul   x14, x10, x12       # low half: fractional part of value / 10
 mulhu x15, x10, x12       # high half: quotient = value / 10
 mulhu x16, x14, x13       # high half: digit = value % 10
-slli  x11, x11, 28         # make room for one BCD digit
+slli  x16, x16, 28         # make room for one BCD digit
 or    x11, x11, x16       # append that digit
 addi  x10, x15, 0         # value = quotient
 

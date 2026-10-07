@@ -7,7 +7,7 @@ module cpu(input logic clk, input logic rst_n, input logic [31:0] io0_in, output
     logic [11:0] PC_FETCH = 12'd0;
     
     //Execution stage variables
-    logic alusrc_EX, GPIO_we_EX, regwrite_EX;
+    logic alusrc_EX, GPIO_we_EX, regwrite_EX, zero_EX;
     logic [1:0] regsel_EX;
     logic [2:0] funct3_EX;
     logic [3:0] aluop_EX;
@@ -15,14 +15,14 @@ module cpu(input logic clk, input logic rst_n, input logic [31:0] io0_in, output
     logic [6:0] opcode_EX, funct7_EX;
     logic [11:0] immi_EX;
     logic [19:0] immu_EX;
-    logic [31:0] instruction_EX, readdata1_EX, readdata2_EX, alu_result_EX, immi_signext_EX;
+    logic [31:0] instruction_EX, readdata1_EX, readdata2_EX, alu_result_EX, immi_signext_EX, alu_B_EX;
     
-    //Writebak stage variables
-    logic zero_EX, regwrite_WB;
+    //Writeback stage variables
+    logic regwrite_WB;
     logic [1:0] regsel_WB;
     logic [4:0] rd_WB;
     logic [19:0] immu_WB;
-    logic [31:0] writedata_WB, alu_B_EX, alu_result_WB, io0_in_WB;
+    logic [31:0] writedata_WB, alu_result_WB, io0_in_WB;
 
     //sign extends immi for alu selection
     assign immi_signext_EX = {{20{immi_EX[11]}}, immi_EX};
@@ -57,7 +57,7 @@ module cpu(input logic clk, input logic rst_n, input logic [31:0] io0_in, output
         end
     end
 
-     //i02_out mux w/ GPIO_we enable
+     //io2_out mux w/ GPIO_we enable
     always_ff @(posedge clk) begin
         if (!rst_n) begin
             io2_out <= 32'd0;
@@ -69,7 +69,7 @@ module cpu(input logic clk, input logic rst_n, input logic [31:0] io0_in, output
     //ALU mux
     assign alu_B_EX = alusrc_EX ? immi_signext_EX : readdata2_EX;
 
-    //ALU write data mux
+    //Register file write data mux
     always_comb begin
         case (regsel_WB)
             2'd0: writedata_WB = io0_in_WB;

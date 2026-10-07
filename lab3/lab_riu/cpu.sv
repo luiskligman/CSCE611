@@ -4,7 +4,7 @@ module cpu(input logic clk, input logic rst_n, input logic [17:0] io0_in, output
     initial $readmemh("instmem.dat",inst_ram);
 
     //Fetch stage variables
-    logic [11:0] PC_FETCH = 12'd0;
+    logic [11:0] PC_FETCH;
     
     //Execution stage variables
     logic alusrc_EX, GPIO_we_EX, regwrite_EX, zero_EX;

@@ -185,20 +185,12 @@ module controlunit (
             end
             if (opcode_EX == 7'b1110011) begin // csrrw
                 if (funct3_EX == 3'b001) begin
-                    if (csr == 12'hf00) begin // sw
-                        alusrc_EX = 1'bX;
-                        GPIO_we_EX = 1'b0;
-                        regwrite_EX = 1'b1;
+                    regwrite_EX = 1'b1;
+                    regsel_EX = 2'b110;
+                    if (csr == 12'hf00) // SW
                         regsel_EX = 2'b00;
-                        aluop_EX = 4'bX;
-                    end
-                    if (csr == 12'hf02) begin // hex
-                        alusrc_EX = 1'bX;
-                        GPIO_we_EX = 1'b1;
-                        regwrite_EX = 1'b0;
-                        regsel_EX = 2'bX;
-                        aluop_EX = 4'bX;
-                    end
+                    if (csr == 12'hf02) // Hex
+                        GPIO_we_EX = 1'b1; 
                 end
             end
         end

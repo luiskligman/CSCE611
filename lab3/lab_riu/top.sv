@@ -74,42 +74,42 @@ module top (
 	);
 
 	hexdriver display0 (
-    .val (io2_out[3:0]),
+    .val (io2_out[31:28]),
     .HEX (HEX0)
 	);
 
 	hexdriver display1 (
-		.val (io2_out[7:4]),
+		.val (io2_out[27:24]),
 		.HEX (HEX1)
 	);
 
 	hexdriver display2 (
-		.val (io2_out[11:8]),
+		.val (io2_out[23:20]),
 		.HEX (HEX2)
 	);
 
 	hexdriver display3 (
-		.val (io2_out[15:12]),
+		.val (io2_out[19:16]),
 		.HEX (HEX3)
 	);
 
 	hexdriver display4 (
-		.val (io2_out[19:16]),
+		.val (io2_out[15:12]),
 		.HEX (HEX4)
 	);
 
 	hexdriver display5 (
-		.val (io2_out[23:20]),
+		.val (io2_out[11:8]),
 		.HEX (HEX5)
 	);
 
 	hexdriver display6 (
-		.val (io2_out[27:24]),
+		.val (io2_out[7:4]),
 		.HEX (HEX6)
 	);
 
 	hexdriver display7 (
-		.val (io2_out[31:28]),
+		.val (io2_out[3:0]),
 		.HEX (HEX7)
 	);
 	

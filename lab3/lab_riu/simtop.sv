@@ -94,31 +94,34 @@ module simtop;
 		.immi_EX(immi),
 		.immu_EX(immu)
 	);
-
+	
+	logic dec_done = 1'b0;
 	always @(posedge clk)
  		begin
-			// instruction = [63:32], expected = [31:0]
- 			{instruction, expected} = testvectors[vectornum];
-			#1;
-			if ({funct7, rs2, rs1, funct3, rd, opcode} !== expected || // R-Type
-			    {immi, rs1, funct3, rd, opcode}        !== expected || // I-Type
-			    {immu, rd, opcode} 				   	   !== expected) // U-Type
-			begin
-				$display("vector %0d FAILED: instruction=%b", vectornum, instruction);
-				errors = errors + 1;
-			end
+		if (!dec_done) begin
+				// instruction = [63:32], expected = [31:0]
+				{instruction, expected} = testvectors[vectornum];
+				#1;
+				if ({funct7, rs2, rs1, funct3, rd, opcode} !== expected || // R-Type
+					{immi, rs1, funct3, rd, opcode}        !== expected || // I-Type
+					{immu, rd, opcode} 				   	   !== expected) // U-Type
+				begin
+					$display("vector %0d FAILED: instruction=%b", vectornum, instruction);
+					errors = errors + 1;
+				end
 
-			vectornum = vectornum + 1;
-			if (testvectors[vectornum] === 64'bx) 
-			begin
-				$display("%0d tests completed with %0d errors", vectornum, errors);
-				$stop;
+				vectornum = vectornum + 1;
+				if (testvectors[vectornum] === 64'bx) 
+				begin
+					$display("%0d tests completed with %0d errors", vectornum, errors);
+					dec_done = 1'b1;
+				end
 			end
  		end
 
 	// control unit sanity check
 	logic [31:0] cu_instr;
-	logic [6:0] cu_opcode, cu_fucnt7;
+	logic [6:0] cu_opcode, cu_funct7;
 	logic [2:0] cu_funct3;
 	logic [11:0] cu_immi;
 	logic alusrc, gpio_we, regwrite;
@@ -126,7 +129,7 @@ module simtop;
 	logic [3:0] aluop;
 	int cu_errors = 0;
 
-	instruction_decorder cu_dev (
+	instruction_decoder cu_dev (
 		.instruction_EX(cu_instr),
 		.opcode_EX(cu_opcode),
 		.funct7_EX(cu_funct7),
@@ -138,7 +141,7 @@ module simtop;
 		.immu_EX()
 	);
 
-	control_unit cu (
+	controlunit cu (
 		.opcode_EX(cu_opcode),
 		.funct7_EX(cu_funct7),
 		.funct3_EX(cu_funct3),
@@ -155,7 +158,7 @@ module simtop;
 			   input logic [8:0] exp);
 		cu_instr = instr;
 		#1;
-		if ({alusrc, gpio_we, regwrite, regsel, aluop} !=? exp) begin
+		if (({alusrc, gpio_we, regwrite, regsel, aluop} !=? exp) !== 1'b1) begin
 			$display("CU FAIL %s: got %b, expected %b", name,
 					 {alusrc, gpio_we, regwrite, regsel, aluop}, exp);
 			cu_errors++;
@@ -169,7 +172,7 @@ module simtop;
       	check("srai",      32'h40335293, 9'b1_0_1_10_1010);
       	check("lui",       32'h800002b7, 9'bx_0_1_01_xxxx);
       	check("csrrw io0", 32'hf00012f3, 9'bx_0_1_00_xxxx);
-      	check("csrrw io2", 32'hf0231073, 9'bx_1_0_xx_xxxx);
+      	check("csrrw io2", 32'hf0231073, 9'bx_1_1_11_xxxx);
       	check("all zeros", 32'h00000000, 9'bx_0_0_xx_xxxx);
 		$display("control unit: %0d errors", cu_errors);
 	end

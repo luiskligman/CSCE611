@@ -82,7 +82,7 @@ module simtop;
 	 */
 
 
-	// instatiate instruction decoder
+	// instantiate instruction decoder
 	instruction_decoder dec (
 		.instruction_EX(instruction),
 		.funct7_EX(funct7),
@@ -102,7 +102,7 @@ module simtop;
 			#1;
 			if ({funct7, rs2, rs1, funct3, rd, opcode} !== expected || // R-Type
 			    {immi, rs1, funct3, rd, opcode}        !== expected || // I-Type
-			    {immu, rd, opcode} 				   !== expected) // U-Type
+			    {immu, rd, opcode} 				   	   !== expected) // U-Type
 			begin
 				$display("vector %0d FAILED: instruction=%b", vectornum, instruction);
 				errors = errors + 1;
@@ -115,6 +115,19 @@ module simtop;
 				$stop;
 			end
  		end
+
+	// control unit sanity check
+	logic [31:0] cu_instr;
+	logic [6:0] cu_opcode, cu_fucnt7;
+	logic [2:0] cu_funct3;
+	logic [11:0] cu_immi;
+	logic alusrc, gpio_we, regwrite;
+	logic [1:0] regsel;
+	logic [3:0] aluop;
+	int cu_errors = 0;
+
+
+	
 
 endmodule
 

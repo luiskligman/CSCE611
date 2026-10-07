@@ -1,4 +1,4 @@
-module cpu(input logic clk, input logic rst_n, input logic [31:0] io0_in, output logic [31:0] io2_out);
+module cpu(input logic clk, input logic rst_n, input logic [17:0] io0_in, output logic [31:0] io2_out);
     //get program from memory
     logic [31:0] inst_ram [4095:0];
     initial $readmemh("instmem.dat",inst_ram);
@@ -21,9 +21,9 @@ module cpu(input logic clk, input logic rst_n, input logic [31:0] io0_in, output
     logic regwrite_WB;
     logic [1:0] regsel_WB;
     logic [4:0] rd_WB;
+    logic [17:0] io0_in_WB;
     logic [19:0] immu_WB;
-    logic [31:0] writedata_WB, alu_result_WB, io0_in_WB;
-
+    logic [31:0] writedata_WB, alu_result_WB;
     //sign extends immi for alu selection
     assign immi_signext_EX = {{20{immi_EX[11]}}, immi_EX};
 
@@ -44,7 +44,7 @@ module cpu(input logic clk, input logic rst_n, input logic [31:0] io0_in, output
             rd_WB <= 5'd0;
             regwrite_WB <= 1'b0;
             regsel_WB <= 2'b0;
-            io0_in_WB <= 32'b0;
+            io0_in_WB <= 18'b0;
             immu_WB <= 20'b0;
             alu_result_WB <= 32'b0;
         end else begin
@@ -72,7 +72,7 @@ module cpu(input logic clk, input logic rst_n, input logic [31:0] io0_in, output
     //Register file write data mux
     always_comb begin
         case (regsel_WB)
-            2'd0: writedata_WB = io0_in_WB;
+            2'd0: writedata_WB = {14'b0, io0_in_WB};
             2'd1: writedata_WB = {immu_WB, 12'b0};
             2'd2: writedata_WB = alu_result_WB;
             default: writedata_WB = 32'd0;

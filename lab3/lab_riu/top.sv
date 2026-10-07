@@ -50,6 +50,8 @@ module top (
 	/* LED state register, 0 means going left, 1 means going right */
 	logic ledstate;
 
+	logic [31:0] io2_out;
+
 
 //=======================================================
 //  Behavioral coding
@@ -66,15 +68,58 @@ module top (
 	
 	cpu cpu (
 		.clk (CLOCK_50),
-		.rst_n (KEY[0])
+		.rst_n (KEY[0]),
+		.io0_in (SW),
+		.io2_out (io2_out)
+	);
 
+	hexdriver display0 (
+    .val (io2_out[3:0]),
+    .HEX (HEX0)
+	);
+
+	hexdriver display1 (
+		.val (io2_out[7:4]),
+		.HEX (HEX1)
+	);
+
+	hexdriver display2 (
+		.val (io2_out[11:8]),
+		.HEX (HEX2)
+	);
+
+	hexdriver display3 (
+		.val (io2_out[15:12]),
+		.HEX (HEX3)
+	);
+
+	hexdriver display4 (
+		.val (io2_out[19:16]),
+		.HEX (HEX4)
+	);
+
+	hexdriver display5 (
+		.val (io2_out[23:20]),
+		.HEX (HEX5)
+	);
+
+	hexdriver display6 (
+		.val (io2_out[27:24]),
+		.HEX (HEX6)
+	);
+
+	hexdriver display7 (
+		.val (io2_out[31:28]),
+		.HEX (HEX7)
 	);
 	
+
 	always @(posedge CLOCK_50) begin
 		/* drive the clock divider, every 2^26 cycles of CLOCK_50, the
 		* top bit will roll over and give us a clock edge for clkdiv
 		* */
 		clkdiv <= clkdiv + 1;
+
 	end
 
 	always @(posedge ledclk) begin

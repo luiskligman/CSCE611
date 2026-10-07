@@ -126,6 +126,56 @@ module simtop;
 	logic [3:0] aluop;
 	int cu_errors = 0;
 
+	instruction_decorder cu_dev (
+		.instruction_EX(cu_instr),
+		.opcode_EX(cu_opcode),
+		.funct7_EX(cu_funct7),
+		.funct3_EX(cu_funct3),
+		.immi_EX(cu_immi),
+		.rs2_EX(),
+		.rs1_EX(),
+		.rd_EX(),
+		.immu_EX()
+	);
+
+	control_unit cu (
+		.opcode_EX(cu_opcode),
+		.funct7_EX(cu_funct7),
+		.funct3_EX(cu_funct3),
+		.csr(cu_immi),
+		.alusrc_EX(alusrc),
+		.GPIO_we_EX(gpio_we),
+		.regwrite_EX(regwrite),
+		.regsel_EX(regsel),
+		.aluop_EX(aluop)
+	);
+	
+	task check(input string name, 
+			   input logic [31:0] instr, 
+			   input logic [8:0] exp);
+		cu_instr = instr;
+		#1;
+		if ({alusrc, gpio_we, regwrite, regsel, aluop} !=? exp) begin
+			$display("CU FAIL %s: got %b, expected %b", name,
+					 {alusrc, gpio_we, regwrite, regsel, aluop}, exp);
+			cu_errors++;
+		end
+	endtask
+
+	initial begin
+		check("add", 	   32'h007302b3, 9'b0_0_1_10_0011);
+		check("sub", 	   32'h407302b3, 9'b0_0_1_10_0100);
+		check("addi",      32'hfff30293, 9'b1_0_1_10_0011);
+      	check("srai",      32'h40335293, 9'b1_0_1_10_1010);
+      	check("lui",       32'h800002b7, 9'bx_0_1_01_xxxx);
+      	check("csrrw io0", 32'hf00012f3, 9'bx_0_1_00_xxxx);
+      	check("csrrw io2", 32'hf0231073, 9'bx_1_0_xx_xxxx);
+      	check("all zeros", 32'h00000000, 9'bx_0_0_xx_xxxx);
+		$display("control unit: %0d errors", cu_errors);
+	end
+		
+
+
 
 	
 

@@ -6,27 +6,20 @@
 module simtop;
 
 	logic clk;
-	logic [6:0] HEX0,HEX1,HEX2,HEX3,HEX4,HEX5,HEX6,HEX7;
+	logic [6:0] HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, HEX6, HEX7;
 	logic [3:0] KEY;
 	logic [17:0] SW;
-	
-	logic [63:0] testvectors [0:999];
-	logic [31:0] instruction, expected;
-	logic [31:0] vectornum, errors;
-	logic reset;
 
-	logic [6:0] opcode, funct7;
-	logic [4:0] rs2, rs1, rd;
-	logic [2:0] funct3;
-	logic [11:0] immi;
-	logic [19:0] immu;
+	integer errors;
 
-	top dut
-	(
+	top #(
+		// Use the simulation-only program instead of instmem.dat.
+		.MEMFILE("cpu_test.dat")
+	) dut (
 		//////////// CLOCK //////////
 		.CLOCK_50(clk),
 		.CLOCK2_50(),
-	    .CLOCK3_50(),
+		.CLOCK3_50(),
 
 		//////////// LED //////////
 		.LEDG(),
@@ -55,132 +48,74 @@ module simtop;
 		#10;
 		KEY <= 4'hf;
 	end
-	
+
 	// drive clock
 	always begin
 		clk <= 1'b0; #5;
 		clk <= 1'b1; #5;
 	end
-	
+
 	// assign simulated switch values
 	assign SW = 18'd12345;
 
-	// read in tests from testvectors.tv
-	initial begin
- 		$readmemb("testvectors.tv", testvectors);
-		// note: use $readmemh() for ALU testbench
- 		vectornum = 32'b0; errors = 32'b0;
- 		reset = 1'b1; #27; reset = 1'b0;
- 	end
-
-	/* 
-	 * input will be 64 bit binary strings
-	 * first 32 bits will be the instruction
-	 * second 32 bit will be the expected result
-
-	 * might have to sign extend certain expect results
-	 */
-
-
-	// instantiate instruction decoder
-	instruction_decoder dec (
-		.instruction_EX(instruction),
-		.funct7_EX(funct7),
-		.rs2_EX(rs2),
-		.rs1_EX(rs1),
-		.funct3_EX(funct3),
-		.rd_EX(rd),
-		.opcode_EX(opcode),
-		.immi_EX(immi),
-		.immu_EX(immu)
+	// Check a 32-bit value and record any error.
+	task automatic check32 (
+		input string       name,
+		input logic [31:0] got,
+		input logic [31:0] expected
 	);
-	
-	logic dec_done = 1'b0;
-	always @(posedge clk)
- 		begin
-		if (!dec_done) begin
-				// instruction = [63:32], expected = [31:0]
-				{instruction, expected} = testvectors[vectornum];
-				#1;
-				if ({funct7, rs2, rs1, funct3, rd, opcode} !== expected || // R-Type
-					{immi, rs1, funct3, rd, opcode}        !== expected || // I-Type
-					{immu, rd, opcode} 				   	   !== expected) // U-Type
-				begin
-					$display("vector %0d FAILED: instruction=%b", vectornum, instruction);
-					errors = errors + 1;
-				end
-
-				vectornum = vectornum + 1;
-				if (testvectors[vectornum] === 64'bx) 
-				begin
-					$display("%0d tests completed with %0d errors", vectornum, errors);
-					dec_done = 1'b1;
-				end
-			end
- 		end
-
-	// control unit sanity check
-	logic [31:0] cu_instr;
-	logic [6:0] cu_opcode, cu_funct7;
-	logic [2:0] cu_funct3;
-	logic [11:0] cu_immi;
-	logic alusrc, gpio_we, regwrite;
-	logic [1:0] regsel;
-	logic [3:0] aluop;
-	int cu_errors = 0;
-
-	instruction_decoder cu_dev (
-		.instruction_EX(cu_instr),
-		.opcode_EX(cu_opcode),
-		.funct7_EX(cu_funct7),
-		.funct3_EX(cu_funct3),
-		.immi_EX(cu_immi),
-		.rs2_EX(),
-		.rs1_EX(),
-		.rd_EX(),
-		.immu_EX()
-	);
-
-	controlunit cu (
-		.opcode_EX(cu_opcode),
-		.funct7_EX(cu_funct7),
-		.funct3_EX(cu_funct3),
-		.csr(cu_immi),
-		.alusrc_EX(alusrc),
-		.GPIO_we_EX(gpio_we),
-		.regwrite_EX(regwrite),
-		.regsel_EX(regsel),
-		.aluop_EX(aluop)
-	);
-	
-	task check(input string name, 
-			   input logic [31:0] instr, 
-			   input logic [8:0] exp);
-		cu_instr = instr;
-		#1;
-		if (({alusrc, gpio_we, regwrite, regsel, aluop} !=? exp) !== 1'b1) begin
-			$display("CU FAIL %s: got %b, expected %b", name,
-					 {alusrc, gpio_we, regwrite, regsel, aluop}, exp);
-			cu_errors++;
+		if (got !== expected) begin
+			$display("FAIL %-8s got = %h, expected = %h",
+					 name, got, expected);
+			errors = errors + 1;
 		end
 	endtask
 
 	initial begin
-		check("add", 	   32'h007302b3, 9'b0_0_1_10_0011);
-		check("sub", 	   32'h407302b3, 9'b0_0_1_10_0100);
-		check("addi",      32'hfff30293, 9'b1_0_1_10_0011);
-      	check("srai",      32'h40335293, 9'b1_0_1_10_1010);
-      	check("lui",       32'h800002b7, 9'bx_0_1_01_xxxx);
-      	check("csrrw io0", 32'hf00012f3, 9'bx_0_1_00_xxxx);
-      	check("csrrw io2", 32'hf0231073, 9'bx_1_1_11_xxxx);
-      	check("all zeros", 32'h00000000, 9'bx_0_0_xx_xxxx);
-		$display("control unit: %0d errors", cu_errors);
+		errors = 0;
+
+		// Wait for the active-low reset pulse to finish.
+		wait (KEY[0] == 1'b1);
+
+		// The supplied program has 25 instructions.  Extra clocks allow
+		// instructions to finish the Fetch -> EX -> WB pipeline.
+		repeat (35) @(posedge clk);
+		#1;
+
+		// Expected values from the supplied instruction test program.
+		check32("x1",  dut.cpu.registers.mem[1],  32'h0000000c);
+		check32("x2",  dut.cpu.registers.mem[2],  32'h00000011);
+		check32("x3",  dut.cpu.registers.mem[3],  32'h88000000);
+		check32("x4",  dut.cpu.registers.mem[4],  32'hfffffff8);
+		check32("x5",  dut.cpu.registers.mem[5],  32'h00000009);
+		check32("x6",  dut.cpu.registers.mem[6],  32'h00000000);
+		check32("x7",  dut.cpu.registers.mem[7],  32'h00000008);
+		check32("x8",  dut.cpu.registers.mem[8],  32'hfffffffc);
+		check32("x9",  dut.cpu.registers.mem[9],  32'h0000001d);
+		check32("x10", dut.cpu.registers.mem[10], 32'h88000000);
+		check32("x11", dut.cpu.registers.mem[11], 32'hfffff811);
+		check32("x12", dut.cpu.registers.mem[12], 32'h0000001f);
+		check32("x13", dut.cpu.registers.mem[13], 32'h00011000);
+		check32("x14", dut.cpu.registers.mem[14], 32'h00004400);
+		check32("x15", dut.cpu.registers.mem[15], 32'hffffc400);
+		check32("x16", dut.cpu.registers.mem[16], 32'h00000018);
+		check32("x17", dut.cpu.registers.mem[17], 32'h00000008);
+		check32("x18", dut.cpu.registers.mem[18], 32'hc4000000);
+		check32("x19", dut.cpu.registers.mem[19], 32'hdbeef000);
+
+		// csrrw x21, 0xf00, x3 reads io0, which is connected to SW.
+		check32("x21", dut.cpu.registers.mem[21], 32'd12345);
+
+		// csrrw x20, 0xf02, x3 writes x3 to io2 / HEX displays.
+		check32("io2_out", dut.io2_out, 32'h88000000);
+
+		if (errors == 0)
+			$display("PASS: CPU test completed with 0 errors.");
+		else
+			$fatal(1, "FAIL: CPU test completed with %0d errors.", errors);
+
+		$finish;
 	end
-		
-
-
-
-	
 
 endmodule
 

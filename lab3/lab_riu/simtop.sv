@@ -6,17 +6,18 @@
 module simtop;
 
 	logic clk;
-	logic [6:0] HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, HEX6, HEX7;
+	logic [6:0] HEX0,HEX1,HEX2,HEX3,HEX4,HEX5,HEX6,HEX7;
 	logic [3:0] KEY;
 	logic [17:0] SW;
 
 	integer errors;
 
-	top dut (
+	top dut
+	(
 		//////////// CLOCK //////////
 		.CLOCK_50(clk),
 		.CLOCK2_50(),
-		.CLOCK3_50(),
+	    .CLOCK3_50(),
 
 		//////////// LED //////////
 		.LEDG(),
@@ -55,7 +56,7 @@ module simtop;
 	// assign simulated switch values
 	assign SW = 18'd12345;
 
-	// Check a 32-bit value and record any error.
+	// Check a 32-bit value and record an error if it is incorrect.
 	task automatic check32 (
 		input string       name,
 		input logic [31:0] got,
@@ -68,14 +69,25 @@ module simtop;
 		end
 	endtask
 
+	/* Self-checking end-to-end CPU test.
+	 *
+	 * cpu.sv initially loads instmem.dat as usual.  At time 1 ns, this
+	 * testbench overwrites the simulated instruction memory with cpu_test.dat.
+	 * The reset remains active until 10 ns, so no test instructions execute
+	 * before cpu_test.dat is loaded.
+	 */
 	initial begin
 		errors = 0;
 
-		// Wait for the active-low reset pulse to finish.
+		// Load the simulation-only instruction test program.
+		#1;
+		$readmemh("cpu_test.dat", dut.cpu.inst_ram);
+
+		// Wait for reset to be released.
 		wait (KEY[0] == 1'b1);
 
-		// The supplied program has 25 instructions.  Extra clocks allow
-		// instructions to finish the Fetch -> EX -> WB pipeline.
+		// The supplied program has 25 instructions.
+		// Allow extra clocks for the Fetch -> EX -> WB pipeline.
 		repeat (35) @(posedge clk);
 		#1;
 
@@ -115,4 +127,3 @@ module simtop;
 	end
 
 endmodule
-

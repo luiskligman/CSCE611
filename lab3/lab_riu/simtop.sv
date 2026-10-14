@@ -12,10 +12,7 @@ module simtop;
 
 	integer errors;
 
-	top #(
-		// Use the simulation-only program instead of instmem.dat.
-		.MEMFILE("cpu_test.dat")
-	) dut (
+	top dut (
 		//////////// CLOCK //////////
 		.CLOCK_50(clk),
 		.CLOCK2_50(),

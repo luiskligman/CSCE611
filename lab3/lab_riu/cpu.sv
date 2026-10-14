@@ -1,14 +1,7 @@
-module cpu#(
-    parameter string MEMFILE = "instmem.dat"
-) (
-    input  logic        clk,
-    input  logic        rst_n,
-    input  logic [17:0] io0_in,
-    output logic [31:0] io2_out
-);
+module cpu(input logic clk, input logic rst_n, input logic [17:0] io0_in, output logic [31:0] io2_out);
     //get program from memory
     logic [31:0] inst_ram [4095:0];
-    initial $readmemh(MEMFILE,inst_ram);
+    initial $readmemh("instmem.dat",inst_ram);
 
     //Fetch stage variables
     logic [11:0] PC_FETCH;

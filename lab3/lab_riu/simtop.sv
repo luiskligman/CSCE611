@@ -11,6 +11,7 @@ module simtop;
 	logic [17:0] SW;
 
 	integer errors;
+	integer i;
 
 	top dut
 	(
@@ -81,8 +82,13 @@ module simtop;
 
 		// Load the simulation-only instruction test program.
 		#1;
-		$readmemh("cpu_test.dat", dut.cpu.inst_ram);
 
+		// Clear all instruction memory left over from instmem.dat.
+		for (i = 0; i < 4096; i = i + 1)
+			dut.cpu.inst_ram[i] = 32'h00000000;
+
+		// Load only the simulation test program.
+		$readmemh("cpu_test.dat", dut.cpu.inst_ram);
 		// Wait for reset to be released.
 		wait (KEY[0] == 1'b1);
 

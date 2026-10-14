@@ -92,13 +92,14 @@ module simtop;
 		// Wait for reset to be released.
 		wait (KEY[0] == 1'b1);
 
-		// The supplied program has 25 instructions.
+		// The program has 35 instructions: 25 professor-provided tests
+		// followed by 10 extra edge-case tests.
 		// Allow extra clocks for the Fetch -> EX -> WB pipeline.
 		repeat (45) @(posedge clk);
 		#1;
 
-		// Expected values from the supplied instruction test program.
-		check32("x1",  dut.cpu.registers.mem[1],  32'h0000000c); // addi
+		// ===== Professor-provided instruction tests =====
+		check32("x1", dut.cpu.registers.mem[1],  32'h0000000c); // addi
 		check32("x2",  dut.cpu.registers.mem[2],  32'h00000011); // addi
 		check32("x3",  dut.cpu.registers.mem[3],  32'h88000000); // add, sub, slli
 		check32("x4",  dut.cpu.registers.mem[4],  32'h08000000); // mul
@@ -124,6 +125,16 @@ module simtop;
 
 		// csrrw x22, 0xf02, x3 writes x3 to io2 / HEX displays.
 		check32("io2_out", dut.io2_out, 32'h88000000);
+
+		// ===== Extra edge-case tests (added beyond the professor-provided tests) =====
+		check32("x24", dut.cpu.registers.mem[24], 32'h00000000); // x0 stays 0 after addi x0, x0, 5
+		check32("x25", dut.cpu.registers.mem[25], 32'h7fffffff); // lui + addi builds the largest positive
+		check32("x26", dut.cpu.registers.mem[26], 32'h80000000); // add overflow wraps
+		check32("x27", dut.cpu.registers.mem[27], 32'h00000021); // addi 33
+		check32("x28", dut.cpu.registers.mem[28], 32'h00000022); // sll by 33 uses only the low 5 bits
+		check32("x29", dut.cpu.registers.mem[29], 32'h38400000); // mulh, both operands negative
+		check32("x30", dut.cpu.registers.mem[30], 32'h000007ff); // largest 12-bit immediate
+		check32("x31", dut.cpu.registers.mem[31], 32'hfffff800); // smallest 12-bit immediate
 
 		if (errors == 0)
 			$display("PASS: CPU test completed with 0 errors.");

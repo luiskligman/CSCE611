@@ -1,6 +1,6 @@
 lkligman@cocsce-l3d22-08:~/Desktop/CSCE611-main/lab3/lab_riu$ ./csce611.sh testbench
 QuestaSim-64 vlog 2020.1 Compiler 2020.01 Jan 28 2020
-Start time: 14:08:10 on Oct 14,2026
+Start time: 14:17:59 on Oct 14,2026
 vlog -pedanticerrors -lint -hazards -source -stats=all alu.sv controlunit.sv cpu.sv hexdriver.sv instruction_decoder.sv regfile.sv simtop.sv top.sv 
 -- Compiling module alu
 -- Compiling module controlunit
@@ -15,20 +15,20 @@ Top level modules:
 	simtop
 
 Memory Statistics
-       mem: size of process (VSZ)                                          181.28 Mb
-       mem: active during the process (RSS)                                 28.71 Mb
+       mem: size of process (VSZ)                                          181.27 Mb
+       mem: active during the process (RSS)                                 28.75 Mb
 Total Time
-     total: wall time                                                        0.14 s
+     total: wall time                                                        0.13 s
      total: cpu time                                                         0.03 s
 
-End time: 14:08:10 on Oct 14,2026, Elapsed time: 0:00:00
+End time: 14:17:59 on Oct 14,2026, Elapsed time: 0:00:00
 Errors: 0, Warnings: 0
 Reading pref.tcl
 
 # 2020.1
 
 # vsim -pedanticerrors -hazards -c -sva -immedassert work.simtop -do "/dev/stdin" 
-# Start time: 14:08:10 on Oct 14,2026
+# Start time: 14:17:59 on Oct 14,2026
 # ** Note: (vsim-3812) Design is being optimized...
 # //  Questa Sim-64
 # //  Version 2020.1 linux_x86_64 Jan 28 2020
@@ -48,8 +48,8 @@ Reading pref.tcl
 # Loading work.simtop(fast)
 # do /dev/stdin
 # PASS: CPU test completed with 0 errors.
-# ** Note: $finish    : simtop.sv(133)
+# ** Note: $finish    : simtop.sv(144)
 #    Time: 456 ns  Iteration: 0  Instance: /simtop
-# End time: 14:08:11 on Oct 14,2026, Elapsed time: 0:00:01
+# End time: 14:18:00 on Oct 14,2026, Elapsed time: 0:00:01
 # Errors: 0, Warnings: 0
 lkligman@cocsce-l3d22-08:~/Desktop/CSCE611-main/lab3/lab_riu$ 

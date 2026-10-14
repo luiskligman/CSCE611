@@ -63,7 +63,7 @@ module simtop;
 		input logic [31:0] expected
 	);
 		if (got !== expected) begin
-			$display("FAIL %-8s got = %h, expected = %h",
+			$display("FAIL %s got = %h, expected = %h",
 					 name, got, expected);
 			errors = errors + 1;
 		end

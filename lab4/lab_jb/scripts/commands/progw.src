@@ -1,0 +1,12 @@
+#!/bin/sh
+
+if [ $# -ge 1 ] ; then
+	if [ "$1" = "help" ] ; then
+		echo "Launch the Quartus GUI programmer window" 1>&2
+		exit 0
+	fi
+fi
+
+with_quartus_ld quartus_pgmw &
+disown
+echo "quartus programmer window spawned and disowned" 1>&2

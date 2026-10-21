@@ -1,0 +1,10 @@
+#!/bin/sh
+
+if [ $# -ge 1 ] ; then
+	if [ "$1" = "help" ] ; then
+		echo "List files that have been added to the Quartus project." 1>&2
+		exit 0
+	fi
+fi
+
+with_quartus_ld quartus_sh -t scripts/listfiles.tcl "$QPF" | egrep -v "^\s*Info"

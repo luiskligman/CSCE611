@@ -1,0 +1,16 @@
+#!/bin/sh
+
+if [ $# -ge 1 ] ; then
+	if [ "$1" = "help" ] ; then
+		echo "Simulate simtop.sv headlessly via ModelSim." 1>&2
+		exit 0
+	fi
+fi
+
+if [ ! -x "$(which vsim)" ] ; then
+	echo "ERROR: no vsim command in PATH" 1>&2
+	exit 1
+fi
+
+vlog -pedanticerrors -lint -hazards -source -stats=all *.sv
+printf "run 100000\n" | vsim -pedanticerrors -hazards -c -sva -immedassert work.simtop -do /dev/stdin

@@ -1,0 +1,12 @@
+#!/bin/sh
+
+if [ $# -ge 1 ] ; then
+	if [ "$1" = "help" ] ; then
+		echo "Launch qhelp." 1>&2
+		exit 0
+	fi
+fi
+
+with_quartus_ld quartus_sh --qhelp &
+disown
+echo "qhelp window spawned and disowned" 1>&2

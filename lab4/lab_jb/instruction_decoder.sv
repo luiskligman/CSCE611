@@ -17,9 +17,14 @@ module instruction_decoder (
     // output logic [6:0] opcode_EX,
 
     // U-Type
-    output logic [19:0] immu_EX
+    output logic [19:0] immu_EX,
     // output logic [4:0] rd_EX,
     // output logic [6:0] opcode_EX,
+
+    //B-Type and J-Type
+    output logic [12:0] branch_offset_EX,
+    output logic [20:0] jal_offset_EX,
+    outpit logic [11:0] jalr_offset_EX
     );
 
     always_comb begin 

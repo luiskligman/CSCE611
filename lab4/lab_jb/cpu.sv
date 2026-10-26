@@ -14,8 +14,10 @@ module cpu(input logic clk, input logic rst_n, input logic [17:0] io0_in, output
     logic [3:0] aluop_EX;
     logic [4:0] rd_EX, rs1_EX, rs2_EX;
     logic [6:0] opcode_EX, funct7_EX;
-    logic [11:0] immi_EX, PC_EX;
+    logic [11:0] immi_EX, PC_EX, jalr_offset_EX;
+    logic [12:0] branch_offset_EX;
     logic [19:0] immu_EX;
+    logic [20:0] jal_offset_EX;
     logic [31:0] instruction_EX, readdata1_EX, readdata2_EX, alu_result_EX, immi_signext_EX, alu_B_EX;
     
     //Writeback stage variables
@@ -94,7 +96,10 @@ module cpu(input logic clk, input logic rst_n, input logic [17:0] io0_in, output
         .rs2_EX (rs2_EX),
         .funct3_EX (funct3_EX),
         .immi_EX (immi_EX),
-        .immu_EX (immu_EX)
+        .immu_EX (immu_EX),
+        .branch_offset_EX(branch_offset_EX),
+        .jal_offset_EX(jal_offset_EX),
+        .jalr_offset_EX(jalr_offset_EX)
     );
 
     //Wiring for control unit

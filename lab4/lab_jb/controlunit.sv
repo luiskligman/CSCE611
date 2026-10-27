@@ -4,7 +4,7 @@ module controlunit (
     input logic [6:0] opcode_EX, funct7_EX,
     input logic [11:0] csr,
     input logic [31:0] R_EX,
-    output logic alusrc_EX,GPIO_we_EX, regwrite_EX, stall_FETCH,
+    output logic alusrc_EX, GPIO_we_EX, regwrite_EX, stall_FETCH,
     output logic [1:0] regsel_EX, pcsrc_EX,
     output logic [3:0] aluop_EX );
 
@@ -192,17 +192,19 @@ module controlunit (
             //CSSRW
             if (opcode_EX == 7'b1110011) begin 
                 if (funct3_EX == 3'b001) begin
-                    if (csr == 12'hf00) // SW
+                    if (csr == 12'hf00) begin  // SW -> rd
                         regwrite_EX = 1'b1;
                         regsel_EX = 2'b00;
-                    if (csr == 12'hf02) // Hex
+                    end
+                    if (csr == 12'hf02) begin  // rs1 -> HEX
                         regwrite_EX = 1'b1;
-                        GPIO_we_EX = 1'b1; 
+                        GPIO_we_EX = 1'b1;
+                    end
                 end
             end
             // Jump instructions
             //I-Type
-            if (opcode_EX == 7'b1100111) begin
+            if (opcode_EX == 7'b1100111) begin  // jalr
                 if(funct3_EX == 3'b000) begin
                    regwrite_EX = 1'b1;
                     regsel_EX = 2'b11;
@@ -212,21 +214,21 @@ module controlunit (
             end
             //B-Type
             if (opcode_EX == 7'b1100011) begin
-                if(funct3_EX == 3'b000) begin //beq
+                if(funct3_EX == 3'b000) begin // beq
                     aluop_EX = 4'b0100;
                     if (R_EX == 32'd0) begin
                         pcsrc_EX = 2'b01;
                         stall_FETCH = 1'b1;
                     end
                 end
-                if(funct3_EX == 3'b001) begin //bne
+                if(funct3_EX == 3'b001) begin // bne
                     aluop_EX = 4'b0100;
                     if (R_EX != 32'd0) begin
                         pcsrc_EX = 2'b01;
                         stall_FETCH = 1'b1;
                     end
                 end
-                if(funct3_EX == 3'b100) begin //blt
+                if(funct3_EX == 3'b100) begin // blt
                     aluop_EX = 4'b1100;
                     if (R_EX == 32'd1) begin
                         pcsrc_EX = 2'b01;

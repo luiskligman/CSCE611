@@ -21,10 +21,12 @@ module instruction_decoder (
     // output logic [4:0] rd_EX,
     // output logic [6:0] opcode_EX,
 
-    //B-Type and J-Type
+    //B-Type
     output logic [12:0] branch_offset_EX,
+
+    // J-Type
     output logic [20:0] jal_offset_EX,
-    outpit logic [11:0] jalr_offset_EX
+    output logic [11:0] jalr_offset_EX
     );
 
     always_comb begin 
@@ -42,6 +44,24 @@ module instruction_decoder (
 
         // U-Type
         immu_EX   = instruction_EX[31:12];
+
+        // B-Type
+        branch_offset_EX = { instruction_EX[31],     // imm[12]
+                             instruction_EX[7],      // imm[11]
+                             instruction_EX[30:25],  // imm[10:5]
+                             instruction_EX[11:8],   // imm[4:1]
+                             1'b0                    // imm[0]
+                            };
+
+        // J-TYPE
+        jal_offset_EX = { instruction_EX[31],  // imm[20]
+                          instruction_EX[19:12],  // imm[19:12]
+                          instruction_EX[20],   // imm[11]
+                          instruction_EX[30:21],  // imm[10:1]
+                          1'b0
+                        };
+
+        jalr_offset_EX = instruction_EX[31:20];
 
     end
 

@@ -197,7 +197,7 @@ module controlunit (
                         regsel_EX = 2'b00;
                     end
                     if (csr == 12'hf02) begin  // rs1 -> HEX
-                        regwrite_EX = 1'b1;
+                        // regwrite_EX = 1'b1;
                         GPIO_we_EX = 1'b1;
                     end
                 end

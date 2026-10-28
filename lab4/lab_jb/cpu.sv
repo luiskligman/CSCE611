@@ -18,7 +18,7 @@ module cpu(input logic clk, input logic rst_n, input logic [17:0] io0_in, output
     logic [12:0] branch_offset_EX;
     logic [19:0] immu_EX;
     logic [20:0] jal_offset_EX;
-    logic [31:0] instruction_EX, readdata1_EX, readdata2_EX, alu_result_EX, immi_signext_EX, alu_B_EX;
+    logic [31:0] instruction_EX, readdata1_EX, readdata2_EX, alu_result_EX, immi_signext_EX, alu_B_EX, jalr_target_EX;
     
     //Writeback stage variables
     logic regwrite_WB;
@@ -35,7 +35,8 @@ module cpu(input logic clk, input logic rst_n, input logic [17:0] io0_in, output
     //assign addr for pc address
     assign branch_addr_EX = PC_EX + {branch_offset_EX[12],branch_offset_EX[12:2]};
     assign jal_addr_EX = PC_EX + jal_offset_EX[13:2];
-    assign jalr_addr_EX = readdata1_EX[11:0] + {{2{jalr_offset_EX[11]}},jalr_offset_EX[11:2]};
+    assign jalr_target_EX = readdata1_EX + {{20{jalr_offset_EX[11]}}, jalr_offset_EX};
+    assign jalr_addr_EX = jalr_target_EX[13:2];  // drop last two bits means dividing by 4, converting to word address
 
     //Put fetched instruction to instruction in ex stage
     always_ff @(posedge clk) begin
@@ -101,7 +102,7 @@ module cpu(input logic clk, input logic rst_n, input logic [17:0] io0_in, output
             2'd0: writedata_WB = {14'b0, io0_in_WB};
             2'd1: writedata_WB = {immu_WB, 12'b0};
             2'd2: writedata_WB = alu_result_WB;
-            2'd3: writedata_WB = {20'b0, PC_WB};
+            2'd3: writedata_WB = {18'b0, PC_WB, 2'b00};
             default: writedata_WB = 32'd0;
         endcase
     end

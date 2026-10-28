@@ -5,7 +5,7 @@ module cpu(input logic clk, input logic rst_n, input logic [17:0] io0_in, output
 
     //Fetch stage variables
     logic stall_FETCH;
-    logic [11:0] PC_FETCH;
+    logic [11:0] PC_FETCH; 
     
     //Execution stage variables
     logic alusrc_EX, GPIO_we_EX, regwrite_EX, zero_EX, stall_EX;
@@ -14,7 +14,7 @@ module cpu(input logic clk, input logic rst_n, input logic [17:0] io0_in, output
     logic [3:0] aluop_EX;
     logic [4:0] rd_EX, rs1_EX, rs2_EX;
     logic [6:0] opcode_EX, funct7_EX;
-    logic [11:0] immi_EX, PC_EX, jalr_offset_EX;
+    logic [11:0] immi_EX, PC_EX, jalr_offset_EX, branch_addr_EX, jal_addr_EX, jalr_addr_EX;
     logic [12:0] branch_offset_EX;
     logic [19:0] immu_EX;
     logic [20:0] jal_offset_EX;
@@ -24,11 +24,18 @@ module cpu(input logic clk, input logic rst_n, input logic [17:0] io0_in, output
     logic regwrite_WB;
     logic [1:0] regsel_WB;
     logic [4:0] rd_WB;
+    logic [11:0] PC_WB;
     logic [17:0] io0_in_WB;
     logic [19:0] immu_WB;
     logic [31:0] writedata_WB, alu_result_WB;
+
     //sign extends immi for alu selection
     assign immi_signext_EX = {{20{immi_EX[11]}}, immi_EX};
+    
+    //assign addr for pc address
+    assign branch_addr_EX = PC_EX + {branch_offset_EX[12],branch_offset_EX[12:2]};
+    assign jal_addr_EX = PC_EX + jal_offset_EX[13:2];
+    assign jalr_addr_EX = readdata1_EX[11:0] + {{2{jalr_offset_EX[11]}},jalr_offset_EX[11:2]};
 
     //Put fetched instruction to instruction in ex stage
     always_ff @(posedge clk) begin
@@ -40,8 +47,18 @@ module cpu(input logic clk, input logic rst_n, input logic [17:0] io0_in, output
         end else begin
             PC_EX <= PC_FETCH;
             stall_EX <= stall_FETCH;
-            PC_FETCH <= PC_FETCH + 1'b1;
-            instruction_EX <= inst_ram[PC_FETCH];
+           
+            case (pcsrc_EX)
+                2'b00: PC_FETCH <= PC_FETCH +12'd1;
+                2'b01: PC_FETCH <= branch_addr_EX;
+                2'b10: PC_FETCH <= jal_addr_EX;
+                2'b11: PC_FETCH <= jalr_addr_EX;
+            endcase
+
+            if (stall_FETCH)
+                instruction_EX <= 32'd0;
+            else
+                instruction_EX <= inst_ram[PC_FETCH];
         end
     end
 
@@ -54,6 +71,7 @@ module cpu(input logic clk, input logic rst_n, input logic [17:0] io0_in, output
             io0_in_WB <= 18'b0;
             immu_WB <= 20'b0;
             alu_result_WB <= 32'b0;
+            PC_WB <= 12'd0;
         end else begin
             rd_WB <= rd_EX;
             regwrite_WB <= regwrite_EX;
@@ -61,6 +79,7 @@ module cpu(input logic clk, input logic rst_n, input logic [17:0] io0_in, output
             io0_in_WB <= io0_in;
             immu_WB <= immu_EX;
             alu_result_WB <= alu_result_EX;
+            PC_WB <= PC_EX + 12'd1;
         end
     end
 
@@ -82,6 +101,7 @@ module cpu(input logic clk, input logic rst_n, input logic [17:0] io0_in, output
             2'd0: writedata_WB = {14'b0, io0_in_WB};
             2'd1: writedata_WB = {immu_WB, 12'b0};
             2'd2: writedata_WB = alu_result_WB;
+            2'd3: writedata_WB = {20'b0, PC_WB};
             default: writedata_WB = 32'd0;
         endcase
     end

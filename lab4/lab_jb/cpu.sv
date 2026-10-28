@@ -50,7 +50,7 @@ module cpu(input logic clk, input logic rst_n, input logic [17:0] io0_in, output
             stall_EX <= stall_FETCH;
            
             case (pcsrc_EX)
-                2'b00: PC_FETCH <= PC_FETCH +12'd1;
+                2'b00: PC_FETCH <= PC_FETCH + 12'd1;
                 2'b01: PC_FETCH <= branch_addr_EX;
                 2'b10: PC_FETCH <= jal_addr_EX;
                 2'b11: PC_FETCH <= jalr_addr_EX;

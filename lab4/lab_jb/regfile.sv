@@ -4,17 +4,17 @@ module regfile (
 
 /**** inputs *****************************************************************/
 
-	input [0:0 ] clk,		/* clock */
-	input [0:0 ] we,		/* write enable */
-	input [4:0 ] readaddr1,		/* read address 1 */
-	input [4:0 ] readaddr2,		/* read address 2 */
-	input [4:0 ] writeaddr,		/* write address */
-	input [31:0] writedata,		/* write data */
+	input logic [0:0 ] clk,		/* clock */
+	input logic [0:0 ] we,		/* write enable */
+	input logic [4:0 ] readaddr1,		/* read address 1 */
+	input logic [4:0 ] readaddr2,		/* read address 2 */
+	input logic [4:0 ] writeaddr,		/* write address */
+	input logic [31:0] writedata,		/* write data */
 
 /**** outputs ****************************************************************/
 
-	output [31:0] readdata1,	/* read data 1 */
-	output [31:0] readdata2		/* read data 2 */
+	output logic [31:0] readdata1,	/* read data 1 */
+	output logic [31:0] readdata2		/* read data 2 */
 );
 
 logic [31:0] mem[31:0];

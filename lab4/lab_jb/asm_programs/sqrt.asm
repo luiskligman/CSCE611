@@ -1,5 +1,6 @@
+start:
 csrrw x1, 0xf00, x0  # read from switch
-srli x1, x1, 16
+
 
 li x2, 0
 li x3, 16777216
@@ -8,8 +9,8 @@ li x3, 16777216
 loop: 
 add x6, x2, x3
 mul x4, x6, x6
-mulhu x5, x6, x5
-bltu x5, x1, half
+mulhu x5, x6, x6
+bltu x5, x1, keep
 bne x5, x1, half
 bne x4, x0, half
 
@@ -21,7 +22,7 @@ srli x3, x3, 1
 bne x3, x0, loop
 
 output:
-li x7, 1000000
+li x7, 100000
 mul x4, x2, x7
 mulhu x5, x2, x7
 srli x4, x4, 16
@@ -96,3 +97,4 @@ or    x11, x11, x16       # append that digit
 addi  x10, x15, 0         # value = quotient
 
 csrrw x0, 0xf02, x11     #output to hex
+jal x0, start

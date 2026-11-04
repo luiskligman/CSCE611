@@ -173,6 +173,11 @@ module simtop;
         check32("t2 x30", dut.cpu.registers.mem[30], 32'h0000000b); // branch in the cancelled slot ignored
         check32("t2 x31", dut.cpu.registers.mem[31], 32'h000004d2); // program reached the end 
 
+		// ===== Program 3: the sqrt program itself (instmem.dat), SW = 12345 =====
+        // It loops forever, so io2_out holds the result once the first pass finishes.
+        run_program("instmem.dat", 2000);
+        check32("sqrt io2_out", dut.io2_out, 32'h11110804); // sqrt(12345) = 111.10805
+
 		if (errors == 0)
 			$display("PASS: CPU test completed with 0 errors.");
 		else

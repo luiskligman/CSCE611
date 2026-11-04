@@ -1,75 +1,126 @@
 # CSCE 611: Advanced Digital Design
 
-Lab work for **CSCE 611 (Advanced Digital Design)** at the University of South Carolina. The labs start with RISC-V assembly and build toward a **pipelined RV32I processor** written in SystemVerilog and run on an Intel/Altera **DE2-115 FPGA** board.
+Coursework for **CSCE 611** at the University of South Carolina (Fall 2025). The labs start with RISC-V assembly and build up to a **3-stage pipelined RV32I processor** in SystemVerilog that runs on a Terasic **DE2-115** FPGA board.
 
-## Repository Layout
+## Labs
 
-| Directory | Lab | Language | Summary |
+| Lab | Folder | What it is | Status |
 |---|---|---|---|
-| [`sqrt_lab/`](sqrt_lab) | Fixed-Point Square Root | RISC-V assembly | Computes a square root with binary search in fixed-point arithmetic |
-| [`lab2/lab_hex/`](lab2/lab_hex) | Seven-Segment Decoder | SystemVerilog | Shows the board's switch values as hex digits on the 7-segment displays |
-| [`lab3/lab_riu/`](lab3/lab_riu) | RISC-V R/I/U-Type CPU | SystemVerilog | 3-stage pipelined CPU for a subset of RV32I *(in progress)* |
-| `rars.jar` | — | — | [RARS](https://github.com/TheThirdOne/rars) RISC-V assembler and simulator |
+| 1. Fixed-Point Square Root | [`sqrt_lab/`](sqrt_lab) | Square root in RISC-V assembly, using only integer instructions | Done |
+| 2. Seven-Segment Decoder | [`lab2/lab_hex/`](lab2/lab_hex) | Shows the switch values as hex digits on the 7-segment displays | Done |
+| 3. R/I/U-Type CPU | [`lab3/lab_riu/`](lab3/lab_riu) | 3-stage pipelined CPU, self-checking testbench, `bin2dec` program | Done |
+| 4. Jumps & Branches | [`lab4/lab_jb/`](lab4/lab_jb) | Adds `jal`, `jalr`, and B-type branches to the lab 3 CPU | In progress |
 
-Each lab folder includes the original assignment handout as a PDF.
+Each lab folder has the assignment handout as a PDF. The hardware labs also have it as `README.md` inside the project folder.
+
+Other files:
+
+- `rars.jar`: the course's copy of the [RARS](https://github.com/TheThirdOne/rars) RISC-V assembler and simulator
+- `lecture_slides/`, `midterm_review/`, `syllabus.pdf`: course materials
 
 ---
 
-## Lab 1: Fixed-Point Square Root (`sqrt_lab/sqrt.asm`)
+## Lab 1: Fixed-Point Square Root
 
-Finds the square root of a number using only integer instructions.
+[`sqrt_lab/sqrt.asm`](sqrt_lab/sqrt.asm) finds a square root using binary search.
 
-- **Format:** the input and output are fixed-point numbers with **14 fractional bits** (value × 2¹⁴).
-- **Algorithm:** binary search. The guess starts at 0 and the step starts at 256.0 (`2^22` in raw form). On each pass the program squares the guess, adds the step if the square is too small or subtracts it if it is too large, then halves the step. It stops when the square matches the input exactly or the step reaches 0.
-- **Squaring the guess:** `mul` and `mulhu` give the full 64-bit product. The program then shifts and ORs the two halves to rescale the result back to the 14-fractional-bit format.
-- **I/O:** reads an integer with RARS syscall `5` and prints the result with syscall `1`.
+- Input and output are fixed-point numbers with **14 fractional bits** (the value × 2¹⁴).
+- The guess starts at 0 and the step at 256.0. Each pass squares the guess, adds the step if the square is too small or subtracts it if too large, then halves the step. The loop stops when the square matches exactly or the step reaches 0.
+- To square the guess, `mul` and `mulhu` produce the full 64-bit product, and shifts rescale it back to 14 fractional bits.
 
-**To run it:**
 ```bash
 java -jar rars.jar sqrt_lab/sqrt.asm
 ```
-Type the input as a raw fixed-point value. For example, `65536` is 4.0, and the program prints `32768`, which is 2.0.
+
+Enter the input as a raw fixed-point value. For example, `65536` (4.0) prints `32768` (2.0).
+
+## Lab 2: Seven-Segment Decoder
+
+- [`hexdriver.sv`](lab2/lab_hex/hexdriver.sv): turns a 4-bit value (`0`–`F`) into the pattern for one active-low 7-segment digit.
+- [`top.sv`](lab2/lab_hex/top.sv): shows `SW[17:0]` in hex on `HEX0`–`HEX4`. It keeps the course's "bouncing comet" LED demo.
+
+## Lab 3: R/I/U-Type CPU
+
+A 3-stage pipeline: **Fetch → Execute → Writeback**. Decoding, register reads, and the ALU all happen in Execute.
+
+| File | Role |
+|---|---|
+| `cpu.sv` | Pipeline registers, PC, instruction memory, writeback mux |
+| `instruction_decoder.sv` | Splits an instruction into opcode, registers, funct fields, and immediates |
+| `controlunit.sv` | Sets the ALU op and the mux and write-enable signals for each instruction |
+| `regfile.sv` | 32 × 32-bit registers. `x0` is always 0, and a register written in the same cycle is read with its new value (write-first bypass) |
+| `alu.sv` | 32-bit ALU (supplied with the course) |
+| `top.sv` | Connects the CPU to the switches and 8 hex displays |
+| `simtop.sv` | Self-checking testbench |
+
+**Instructions:**
+
+- R-type: `add` `sub` `and` `or` `xor` `sll` `srl` `sra` `slt` `sltu` `mul` `mulh` `mulhu` `csrrw`
+- I-type: `addi` `andi` `ori` `xori` `slli` `srli` `srai`
+- U-type: `lui`
+
+**I/O through CSRs:** `csrrw rd, io0, x0` reads the switches, and `csrrw x0, io2, rs1` writes a value to the hex displays.
+
+**Program:** [`bin2dec.asm`](<lab3/lab_riu/asm programs/bin2dec.asm>) reads the switches and shows the value in decimal on the hex displays. It divides by 10 by multiplying with `0x1999999a` (about 2³²/10), because the CPU has no divide instruction. Its machine code is in `instmem.dat`, which the CPU loads at startup.
+
+**Testing:** see [`lab3/lab_riu/TESTING.md`](lab3/lab_riu/TESTING.md) for what the test program covers and how the expected values were found.
+
+## Lab 4: Jumps & Branches (in progress)
+
+Extends the lab 3 CPU with:
+
+- J-type: `jal`
+- I-type: `jalr`
+- B-type: `beq` `bne` `blt` `bge` `bltu` `bgeu`
+
+**How it works** (in [`lab4/lab_jb/`](lab4/lab_jb)):
+
+- The PC is a 12-bit **word** address into a 4096-word instruction memory. Branch and jump offsets are byte offsets, so the CPU drops their low 2 bits. Return addresses written to `rd` are byte addresses.
+- `pcsrc_EX` chooses the next PC: `00` = PC + 1, `01` = branch target, `10` = `jal` target, `11` = `jalr` target (`rs1` + offset).
+- Branch comparisons use the ALU: subtract for `beq`/`bne`, `slt` for `blt`/`bge`, and `sltu` for `bltu`/`bgeu`.
+- Branches and jumps are resolved in Execute. When one is taken, `stall_FETCH` replaces the instruction fetched after it with a no-op, and `stall_EX` makes sure that no-op cannot write a register or redirect the PC.
+
+**Testing:** `simtop.sv` runs two programs in a row and checks the registers after each:
+
+1. `cpu_test.dat` ([`test1.asm`](lab4/lab_jb/asm_programs/test1.asm)): the lab 3 R/I/U tests, run for 45 cycles.
+2. `cpu_test2.dat` ([`test2.asm`](lab4/lab_jb/asm_programs/test2.asm)): branch and jump tests, run for 300 cycles. Every branch is tested both taken and not taken. A taken branch leaves 11 in its result register and a not-taken branch leaves 21, so any other value shows which path ran. The program also tests a backward-branch loop, forward and backward `jal`, a call and return with `jal` + `jalr`, a `jalr` whose address register was written by the previous instruction, and a branch in the cancelled slot after a jump.
+
+**Still to do:**
+
+- [ ] Run the full testbench
+- [ ] Write `sqrt.asm`: read the switches and show the square root in (8,5) decimal fixed point (for example, 3.75 shows as `00375000`)
+- [ ] Assemble `sqrt.asm` into `instmem.dat` (it currently holds `bin2dec`) and test it on the board
 
 ---
 
-## Lab 2: Seven-Segment Decoder (`lab2/lab_hex/`)
+## Tools
 
-A first design on the DE2-115 board.
+| | |
+|---|---|
+| Board | Terasic DE2-115 (Intel Cyclone IV E) |
+| Synthesis | Intel Quartus |
+| Simulation | ModelSim / Questa |
+| Assembler | RARS (`rars.jar`) |
 
-- **`hexdriver.sv`**: combinational module that turns a 4-bit value (`0`–`F`) into the pattern for one active-low 7-segment digit.
-- **`top.sv`**: creates five `hexdriver`s that show switches `SW[17:0]` in hex on `HEX0`–`HEX4`. `HEX5`–`HEX7` are held at `0`. It also keeps the "bouncing comet" LED demo, which is driven by a clock divider on the 50 MHz clock.
-
----
-
-## Lab 3: RISC-V R/I/U-Type Processor (`lab3/lab_riu/`) — *in progress*
-
-A **3-stage pipelined RISC-V CPU** that runs a subset of RV32I, plus a self-checking testbench.
-
-- **Instructions to support:**
-  - R-type: `add`, `sub`, `and`, `or`, `xor`, `sll`, `sra`, `srl`, `slt`, `sltu`, `mul`, `mulh`, `mulhu`, `csrrw`
-  - I-type: `addi`, `andi`, `ori`, and others
-  - U-type: `lui`
-- **`regfile.sv`**: 32 × 32-bit register file with two read ports and one write port. `x0` always reads as zero, and a read of a register that is being written in the same cycle returns the new value (write-first bypass).
-- **`alu.sv`**: 32-bit ALU for logic, add/subtract, signed and unsigned multiply (low and high halves), shifts, and set-less-than comparisons. It was supplied with the course.
-- **`simtop.sv`**: simulation top level that drives the clock, reset, and switch inputs for testing.
-
----
-
-## Toolchain & Build
-
-- **Hardware:** Terasic DE2-115 (Intel Cyclone IV E)
-- **Synthesis:** Intel Quartus
-- **Simulation:** ModelSim / Questa
-- **Assembly:** RARS
-
-Each hardware lab ships with the course's `csce611.sh` helper script:
+Each hardware lab includes the course's `csce611.sh` script. Run it from the project folder:
 
 ```bash
-cd lab2/lab_hex            # or lab3/lab_riu
-./csce611.sh compile       # synthesize with Quartus
-./csce611.sh program       # program the DE2-115 over JTAG
-./csce611.sh testbench     # run the simulation testbench
-./csce611.sh help          # list all commands
+cd lab4/lab_jb
+./csce611.sh compile     # synthesize with Quartus
+./csce611.sh program     # program the DE2-115 over JTAG
+./csce611.sh testbench   # run simtop.sv in ModelSim
+./csce611.sh pack        # build the .7z to submit
+./csce611.sh help        # list every command
 ```
 
-> If you see `QUARTUS_ROOTDIR: unbound variable`, source the Quartus environment first. On the course machines that is `source /usr/local/3rdparty/cad_setup_files/altera.bash`.
+If you see `QUARTUS_ROOTDIR: unbound variable`, load the Quartus environment first. On the lab machines:
+
+```bash
+source /usr/local/3rdparty/cad_setup_files/altera.bash
+```
+
+To assemble a test program into the hex file the testbench loads (from `lab4/lab_jb`):
+
+```bash
+java -jar ../../rars.jar nc a dump .text HexText cpu_test2.dat asm_programs/test2.asm
+```

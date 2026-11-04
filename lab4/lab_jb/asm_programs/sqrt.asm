@@ -2,33 +2,33 @@ start:
 csrrw x1, 0xf00, x0  # read from switch
 
 
-li x2, 0
-li x3, 16777216
+li x2, 0            # current guess
+li x3, 16777216     # set step
 
 
 loop: 
-add x6, x2, x3
-mul x4, x6, x6
-mulhu x5, x6, x6
-bltu x5, x1, keep
-bne x5, x1, half
-bne x4, x0, half
+add x6, x2, x3      # try = guess + step
+mul x4, x6, x6      # squaring try to see if it fits within input
+mulhu x5, x6, x6    # upper part of square
+bltu x5, x1, keep   # upper part less than input, it fits. Keep
+bne x5, x1, half    # upper part larger, but not equal, half.
+bne x4, x0, half    # if equal, check lower half = 0. If not 0, half. 
 
 keep: 
-addi x2, x6, 0
+addi x2, x6, 0      # try smaller than input
 
 half:
-srli x3, x3, 1
-bne x3, x0, loop
+srli x3, x3, 1      # multipy step by 0.5
+bne x3, x0, loop    # if not 0, keep going
 
 output:
-li x7, 100000
-mul x4, x2, x7
-mulhu x5, x2, x7
-srli x4, x4, 16
-slli x5, x5, 16
-or x10, x5, x4
-addi x11, x0, 0
+li x7, 100000       #   scale
+mul x4, x2, x7      #   lower part = guess * scale
+mulhu x5, x2, x7    #   also higher part
+srli x4, x4, 16     #   
+slli x5, x5, 16     #
+or x10, x5, x4      #  putting the guess into x10
+addi x11, x0, 0     #  set x11 to 0
 
 li  x12, 0x1999999a         #approx for 0.1 for the workaround divide
 addi x13, x0, 10	   #divide amount	
